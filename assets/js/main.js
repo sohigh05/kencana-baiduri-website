@@ -64,7 +64,7 @@
     backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
 
-  const lightboxItems = Array.from(document.querySelectorAll('[data-lightbox]'));
+  const lightboxItems = Array.from(document.querySelectorAll('.document-preview[data-lightbox], .gallery-item[data-lightbox]'));
   if (lightboxItems.length) {
     const lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
@@ -118,6 +118,16 @@
     };
 
     lightboxItems.forEach((item, index) => item.addEventListener('click', () => openLightbox(index)));
+    document.querySelectorAll('.document-actions [data-lightbox]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const triggerImage = trigger.querySelector('img');
+        const matchingIndex = lightboxItems.findIndex((item) => {
+          const itemImage = item.querySelector('img');
+          return itemImage && triggerImage && itemImage.src === triggerImage.src;
+        });
+        if (matchingIndex >= 0) openLightbox(matchingIndex);
+      });
+    });
     closeButton.addEventListener('click', closeLightbox);
     prevButton.addEventListener('click', () => moveLightbox(-1));
     nextButton.addEventListener('click', () => moveLightbox(1));
