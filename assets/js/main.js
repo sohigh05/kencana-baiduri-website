@@ -140,6 +140,14 @@
       contactToggle.setAttribute('aria-label', 'Buka pilihan hubungan');
     };
 
+    const updateContactVisibility = () => {
+      const isVisible = window.scrollY > 220;
+      floatingContact.classList.toggle('is-visible', isVisible);
+      floatingContact.toggleAttribute('inert', !isVisible);
+      floatingContact.setAttribute('aria-hidden', String(!isVisible));
+      if (!isVisible) closeContact();
+    };
+
     contactToggle.addEventListener('click', () => {
       const expanded = !floatingContact.classList.contains('expanded');
       floatingContact.classList.toggle('expanded', expanded);
@@ -148,6 +156,8 @@
     });
 
     floatingContact.querySelectorAll('.contact-link').forEach((link) => link.addEventListener('click', closeContact));
+    updateContactVisibility();
+    window.addEventListener('scroll', updateContactVisibility, { passive: true });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeContact();
     });
