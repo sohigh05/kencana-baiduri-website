@@ -9,6 +9,12 @@
   scrollProgress.setAttribute('aria-hidden', 'true');
   document.body.appendChild(scrollProgress);
 
+  const pageCurtain = document.createElement('div');
+  pageCurtain.className = 'page-curtain';
+  pageCurtain.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(pageCurtain);
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('page-ready')));
+
   const setHeader = () => {
     if (!header) return;
     header.classList.toggle('scrolled', window.scrollY > 30);
@@ -49,6 +55,39 @@
       link.classList.add('active');
       link.setAttribute('aria-current', 'page');
     }
+  });
+
+  document.querySelectorAll('h1:not(.hero h1), h2').forEach((heading) => {
+    if (!heading.classList.contains('reveal') && !heading.closest('.reveal')) return;
+    const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) {
+      if (walker.currentNode.textContent.trim()) textNodes.push(walker.currentNode);
+    }
+
+    let wordIndex = 0;
+    textNodes.forEach((node) => {
+      const fragment = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach((part) => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) {
+          fragment.appendChild(document.createTextNode(part));
+          return;
+        }
+        const word = document.createElement('span');
+        word.className = 'kinetic-word';
+        word.style.setProperty('--word-index', wordIndex);
+        word.textContent = part;
+        wordIndex += 1;
+        fragment.appendChild(word);
+      });
+      node.replaceWith(fragment);
+    });
+    heading.classList.add('kinetic-title');
+  });
+
+  document.querySelectorAll('.service-card .number').forEach((number) => {
+    number.dataset.ghost = number.textContent.trim();
   });
 
   const revealItems = document.querySelectorAll('.reveal');
@@ -191,7 +230,115 @@
         stage.style.removeProperty('--profile-y');
       });
     });
+
+    const finePointer = window.matchMedia('(pointer: fine)').matches;
+    if (finePointer) {
+      const ambientCursor = document.createElement('div');
+      ambientCursor.className = 'ambient-cursor';
+      ambientCursor.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(ambientCursor);
+
+      let cursorX = -300;
+      let cursorY = -300;
+      let cursorFrame = 0;
+      const paintCursor = () => {
+        ambientCursor.style.left = `${cursorX}px`;
+        ambientCursor.style.top = `${cursorY}px`;
+        cursorFrame = 0;
+      };
+
+      document.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch') return;
+        cursorX = event.clientX;
+        cursorY = event.clientY;
+        ambientCursor.classList.add('is-active');
+        if (!cursorFrame) cursorFrame = requestAnimationFrame(paintCursor);
+      }, { passive: true });
+
+      document.querySelectorAll('a, button, .service-card, .project-row, .gallery-item, .document-card, .company-detail, .org-node').forEach((target) => {
+        target.addEventListener('pointerenter', () => ambientCursor.classList.add('is-hovering'));
+        target.addEventListener('pointerleave', () => ambientCursor.classList.remove('is-hovering'));
+      });
+
+      document.querySelectorAll('.btn').forEach((button) => {
+        button.addEventListener('pointermove', (event) => {
+          const rect = button.getBoundingClientRect();
+          const x = (event.clientX - rect.left - rect.width / 2) * 0.12;
+          const y = (event.clientY - rect.top - rect.height / 2) * 0.16;
+          button.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        });
+        button.addEventListener('pointerleave', () => {
+          button.style.transform = '';
+        });
+      });
+
+      document.querySelectorAll('.hero, .page-hero, .section, .cta-band').forEach((surface) => {
+        surface.addEventListener('pointermove', (event) => {
+          const rect = surface.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 100;
+          const y = ((event.clientY - rect.top) / rect.height) * 100;
+          const prefix = surface.matches('.hero, .page-hero') ? 'hero' : 'section';
+          surface.style.setProperty(`--${prefix}-x`, `${x}%`);
+          surface.style.setProperty(`--${prefix}-y`, `${y}%`);
+        });
+      });
+    }
+
+    const numberItems = document.querySelectorAll('.stat strong, .metric strong');
+    const numberObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const element = entry.target;
+        const original = element.textContent.trim();
+        const match = original.match(/^([^0-9]*)([\d,]+(?:\.\d+)?)(.*)$/);
+        if (!match) {
+          observer.unobserve(element);
+          return;
+        }
+
+        const prefix = match[1];
+        const target = Number(match[2].replace(/,/g, ''));
+        const suffix = match[3];
+        const decimals = (match[2].split('.')[1] || '').length;
+        const useGrouping = match[2].includes(',');
+        const startValue = target > 1900 && target < 2100 ? target - 24 : 0;
+        const startedAt = performance.now();
+        const duration = target > 10000 ? 1700 : 1250;
+
+        const tick = (now) => {
+          const progress = Math.min(1, (now - startedAt) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const value = startValue + (target - startValue) * eased;
+          element.textContent = prefix + value.toLocaleString('en-MY', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+            useGrouping
+          }) + suffix;
+          if (progress < 1) requestAnimationFrame(tick);
+        };
+
+        requestAnimationFrame(tick);
+        observer.unobserve(element);
+      });
+    }, { threshold: 0.45 });
+    numberItems.forEach((item) => numberObserver.observe(item));
   }
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (link.target === '_blank' || link.hasAttribute('download')) return;
+      const href = link.getAttribute('href') || '';
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin !== window.location.origin) return;
+      if (destination.pathname === window.location.pathname && destination.hash) return;
+
+      event.preventDefault();
+      document.body.classList.add('page-leaving');
+      window.setTimeout(() => window.location.assign(destination.href), reduceMotion ? 0 : 560);
+    });
+  });
 
   const backTop = document.querySelector('.back-top');
   if (backTop) {
