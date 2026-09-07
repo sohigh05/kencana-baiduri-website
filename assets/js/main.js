@@ -12,6 +12,12 @@
   const pageCurtain = document.createElement('div');
   pageCurtain.className = 'page-curtain';
   pageCurtain.setAttribute('aria-hidden', 'true');
+  const pageCurtainLogo = document.createElement('img');
+  pageCurtainLogo.className = 'page-curtain-logo';
+  pageCurtainLogo.src = 'assets/images/kencana-baiduri-logo-asal-rasmi.png';
+  pageCurtainLogo.alt = '';
+  pageCurtainLogo.decoding = 'async';
+  pageCurtain.appendChild(pageCurtainLogo);
   document.body.appendChild(pageCurtain);
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('page-ready')));
 
