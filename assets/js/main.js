@@ -73,6 +73,7 @@
   const icons = {
     up: '<svg class="stroke-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>',
     menu: '<svg class="stroke-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8M6 12h12M9 17h6"/></svg>',
+    download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14"/></svg>',
     phone: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.299c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58z"/></svg>',
     mail: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zm6.761 4.396L0 13.24V14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.76l-6.761-4.147L8 9.914zM10.197 8.243 16 11.801V4.697z"/></svg>',
     whatsapp: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.57 6.57 0 0 1-3.356-.92l-.24-.144-2.493.654.666-2.433-.156-.25a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.066-.315-.099-.445.099-.132.197-.513.646-.627.775-.116.132-.231.148-.429.05-.197-.1-.836-.308-1.592-.984-.59-.525-.987-1.175-1.104-1.373-.115-.198-.013-.304.087-.402.09-.088.197-.23.296-.346.1-.116.132-.198.198-.33.066-.132.033-.248-.017-.347-.05-.099-.445-1.076-.61-1.47-.16-.389-.323-.335-.445-.341-.115-.006-.247-.007-.379-.007a.73.73 0 0 0-.528.248c-.182.198-.691.677-.691 1.654s.708 1.916.806 2.049c.099.132 1.394 2.132 3.378 2.992.47.204.84.326 1.127.417.473.15.904.129 1.244.078.38-.057 1.171-.479 1.337-.943.164-.462.164-.858.115-.941-.05-.082-.182-.132-.38-.23"/></svg>'
@@ -100,6 +101,27 @@
     const type = contactType(option);
     const icon = option.querySelector('.contact-icon');
     if (type && icon) icon.innerHTML = icons[type];
+  });
+
+  document.querySelectorAll('.document-card').forEach((card) => {
+    const previewImage = card.querySelector('.document-preview img');
+    if (!previewImage) return;
+
+    let downloadLink = card.querySelector('.document-actions a[download]');
+    if (!downloadLink) {
+      downloadLink = document.createElement('a');
+      downloadLink.href = previewImage.getAttribute('src');
+      downloadLink.setAttribute('download', '');
+      card.querySelector('.document-actions')?.appendChild(downloadLink);
+    }
+
+    const documentTitle = card.querySelector('h3')?.textContent.trim() || 'dokumen';
+    const sourceName = previewImage.getAttribute('src')?.split('/').pop() || 'dokumen.png';
+    downloadLink.classList.add('document-download');
+    downloadLink.setAttribute('download', `Kencana-Baiduri-${sourceName}`);
+    downloadLink.setAttribute('aria-label', `Muat turun ${documentTitle}`);
+    downloadLink.setAttribute('title', `Muat turun ${documentTitle}`);
+    downloadLink.innerHTML = icons.download;
   });
 
   const floatingContact = document.querySelector('.floating-contact');
@@ -184,6 +206,9 @@
       const itemImage = item.querySelector('img');
       image.src = item.dataset.full || itemImage.src;
       image.alt = itemImage.alt || '';
+      image.className = '';
+      if (item.classList.contains('gallery-item')) image.classList.add('gallery-lightbox-image');
+      if (item.dataset.crop === 'photo') image.classList.add('gallery-photo-crop');
       caption.textContent = item.dataset.caption || itemImage.alt || '';
     };
 
