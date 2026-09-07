@@ -842,7 +842,7 @@ h3 {
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 64px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -850,7 +850,8 @@ h3 {
 }
 
 .metric {
-  padding: 38px;
+  min-width: 0;
+  padding: clamp(24px, 2.4vw, 38px);
   border-right: 1px solid var(--line);
 }
 
@@ -866,15 +867,22 @@ h3 {
 .metric strong {
   color: var(--navy);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-size: clamp(1.8rem, 3.4vw, 3.15rem);
   font-weight: 400;
   line-height: 1.1;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums lining-nums;
   background: linear-gradient(100deg, var(--navy), #384c73, var(--navy));
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   animation: metric-flow 8s linear infinite;
+}
+
+.metric:last-child strong {
+  font-size: clamp(1.55rem, 2.5vw, 2.65rem);
 }
 
 @keyframes metric-flow {
