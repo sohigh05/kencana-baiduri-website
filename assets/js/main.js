@@ -176,6 +176,21 @@
         card.style.transform = '';
       });
     });
+
+    document.querySelectorAll('.company-profile-stage').forEach((stage) => {
+      stage.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch') return;
+        const rect = stage.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 100;
+        const y = ((event.clientY - rect.top) / rect.height) * 100;
+        stage.style.setProperty('--profile-x', `${x}%`);
+        stage.style.setProperty('--profile-y', `${y}%`);
+      });
+      stage.addEventListener('pointerleave', () => {
+        stage.style.removeProperty('--profile-x');
+        stage.style.removeProperty('--profile-y');
+      });
+    });
   }
 
   const backTop = document.querySelector('.back-top');
