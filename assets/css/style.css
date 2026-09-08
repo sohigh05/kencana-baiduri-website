@@ -1028,15 +1028,14 @@ h3 {
 
 .document-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 42px;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 15px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
 
-.document-actions button,
-.document-actions a {
+.document-actions button {
   padding: 0;
   border: 0;
   color: var(--muted);
@@ -1050,38 +1049,7 @@ h3 {
   justify-self: start;
 }
 
-.document-actions .document-download {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  justify-self: end;
-  border: 1px solid rgba(12, 24, 52, 0.13);
-  border-radius: 50%;
-  color: var(--navy);
-  background: rgba(216, 194, 140, 0.28);
-  transition: color var(--transition), background var(--transition), border-color var(--transition), transform var(--transition);
-}
-
-.document-actions .document-download svg {
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
-.document-actions .document-download:hover {
-  border-color: var(--gold);
-  color: var(--white);
-  background: var(--navy);
-  transform: translateY(-2px);
-}
-
-.document-actions button:hover,
-.document-actions a:hover {
+.document-actions button:hover {
   color: var(--gold);
 }
 
