@@ -147,6 +147,185 @@
     if (type && icon) icon.innerHTML = icons[type];
   });
 
+  const musicSource = 'assets/audio/kencana-baiduri-background.mp3';
+  const musicButton = document.createElement('button');
+  musicButton.type = 'button';
+  musicButton.className = 'music-control';
+  musicButton.innerHTML = '<span class="music-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+  document.body.appendChild(musicButton);
+
+  const safeStorage = {
+    get(key, fallback = '') {
+      try { return window.localStorage.getItem(key) ?? fallback; } catch { return fallback; }
+    },
+    set(key, value) {
+      try { window.localStorage.setItem(key, value); } catch { /* Storage is optional. */ }
+    },
+    getSession(key, fallback = '') {
+      try { return window.sessionStorage.getItem(key) ?? fallback; } catch { return fallback; }
+    },
+    setSession(key, value) {
+      try { window.sessionStorage.setItem(key, value); } catch { /* Storage is optional. */ }
+    }
+  };
+
+  const musicPlayers = [new Audio(musicSource), new Audio(musicSource)];
+  const targetMusicVolume = 0.38;
+  const fadeInDuration = 2800;
+  let activeMusicPlayer = 0;
+  let musicEnabled = safeStorage.get('kbe-background-music', 'on') !== 'off';
+  let musicStarted = false;
+  let musicCrossfading = false;
+  let musicAnimationFrame = 0;
+  let storedMusicTime = Number(safeStorage.getSession('kbe-background-music-time', '0')) || 0;
+
+  musicPlayers.forEach((player) => {
+    player.preload = 'auto';
+    player.volume = 0;
+    player.playsInline = true;
+  });
+
+  const updateMusicButton = () => {
+    const isPlaying = musicEnabled && musicStarted;
+    musicButton.classList.toggle('playing', isPlaying);
+    musicButton.setAttribute('aria-pressed', String(isPlaying));
+    musicButton.setAttribute('aria-label', isPlaying ? 'Hentikan muzik latar' : 'Mainkan muzik latar');
+    musicButton.title = isPlaying ? 'Hentikan muzik latar' : 'Mainkan muzik latar';
+  };
+
+  const rampMusicVolume = (player, from, to, duration, onComplete) => {
+    cancelAnimationFrame(musicAnimationFrame);
+    const startedAt = performance.now();
+    const tick = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      player.volume = Math.max(0, Math.min(1, from + ((to - from) * eased)));
+      if (progress < 1) musicAnimationFrame = requestAnimationFrame(tick);
+      else if (onComplete) onComplete();
+    };
+    musicAnimationFrame = requestAnimationFrame(tick);
+  };
+
+  const saveMusicPosition = () => {
+    const player = musicPlayers[activeMusicPlayer];
+    if (Number.isFinite(player.currentTime)) {
+      safeStorage.setSession('kbe-background-music-time', String(player.currentTime));
+    }
+  };
+
+  const beginMusicCrossfade = async () => {
+    if (!musicEnabled || !musicStarted || musicCrossfading) return;
+    const outgoing = musicPlayers[activeMusicPlayer];
+    const incomingIndex = activeMusicPlayer === 0 ? 1 : 0;
+    const incoming = musicPlayers[incomingIndex];
+    const crossfadeDuration = Math.min(4200, Math.max(2200, outgoing.duration * 0.08 * 1000));
+
+    musicCrossfading = true;
+    incoming.currentTime = 0;
+    incoming.volume = 0;
+
+    try {
+      await incoming.play();
+      cancelAnimationFrame(musicAnimationFrame);
+      const startedAt = performance.now();
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startedAt) / crossfadeDuration);
+        const smooth = progress * progress * (3 - (2 * progress));
+        outgoing.volume = targetMusicVolume * (1 - smooth);
+        incoming.volume = targetMusicVolume * smooth;
+
+        if (progress < 1 && musicEnabled) {
+          musicAnimationFrame = requestAnimationFrame(tick);
+          return;
+        }
+
+        outgoing.pause();
+        outgoing.currentTime = 0;
+        activeMusicPlayer = incomingIndex;
+        musicCrossfading = false;
+        saveMusicPosition();
+      };
+      musicAnimationFrame = requestAnimationFrame(tick);
+    } catch {
+      musicCrossfading = false;
+    }
+  };
+
+  musicPlayers.forEach((player) => {
+    player.addEventListener('timeupdate', () => {
+      if (!Number.isFinite(player.duration) || player !== musicPlayers[activeMusicPlayer]) return;
+      const crossfadeSeconds = Math.min(4.2, Math.max(2.2, player.duration * 0.08));
+      if (player.duration - player.currentTime <= crossfadeSeconds + 0.2) beginMusicCrossfade();
+    });
+    player.addEventListener('ended', () => {
+      if (!musicEnabled || musicCrossfading || player !== musicPlayers[activeMusicPlayer]) return;
+      player.currentTime = 0;
+      player.volume = targetMusicVolume;
+      player.play().catch(() => { musicStarted = false; updateMusicButton(); });
+    });
+  });
+
+  const startMusic = async () => {
+    if (!musicEnabled || musicStarted) return;
+    const player = musicPlayers[activeMusicPlayer];
+    const applyStoredPosition = () => {
+      if (!storedMusicTime || !Number.isFinite(player.duration)) return;
+      const safeEnd = Math.max(0, player.duration - 5.2);
+      player.currentTime = Math.min(storedMusicTime, safeEnd);
+      storedMusicTime = 0;
+    };
+
+    if (player.readyState >= 1) applyStoredPosition();
+    else player.addEventListener('loadedmetadata', applyStoredPosition, { once: true });
+
+    try {
+      player.volume = 0;
+      await player.play();
+      musicStarted = true;
+      rampMusicVolume(player, 0, targetMusicVolume, fadeInDuration);
+      updateMusicButton();
+    } catch {
+      musicStarted = false;
+      updateMusicButton();
+    }
+  };
+
+  const stopMusic = () => {
+    saveMusicPosition();
+    cancelAnimationFrame(musicAnimationFrame);
+    musicPlayers.forEach((player) => player.pause());
+    musicStarted = false;
+    musicCrossfading = false;
+    updateMusicButton();
+  };
+
+  musicButton.addEventListener('click', () => {
+    if (musicEnabled && musicStarted) {
+      musicEnabled = false;
+      safeStorage.set('kbe-background-music', 'off');
+      stopMusic();
+      return;
+    }
+
+    musicEnabled = true;
+    safeStorage.set('kbe-background-music', 'on');
+    startMusic();
+  });
+
+  const unlockMusic = (event) => {
+    if (event.target === musicButton || musicButton.contains(event.target)) return;
+    if (musicEnabled && !musicStarted) startMusic();
+  };
+  document.addEventListener('pointerdown', unlockMusic, { once: true, capture: true });
+  document.addEventListener('keydown', unlockMusic, { once: true, capture: true });
+  window.addEventListener('pagehide', saveMusicPosition);
+  window.setInterval(() => {
+    if (musicStarted && !musicCrossfading) saveMusicPosition();
+  }, 2000);
+
+  updateMusicButton();
+  startMusic();
+
   const floatingContact = document.querySelector('.floating-contact');
   if (floatingContact) {
     const contactToggle = document.createElement('button');
