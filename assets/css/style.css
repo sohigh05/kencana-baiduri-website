@@ -51,6 +51,24 @@ body.lightbox-open {
   overflow: hidden;
 }
 
+body.nav-open {
+  position: fixed;
+  top: var(--nav-scroll-offset, 0px);
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+body.nav-open .site-header {
+  background: var(--white);
+}
+
+body.nav-open .floating-contact,
+body.nav-open .music-control {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 body.nav-open .site-header .brand-text,
 body.nav-open .site-header .nav-toggle {
   color: var(--navy);
@@ -2630,6 +2648,14 @@ body.page-leaving .page-curtain {
     min-height: 74px;
   }
 
+  /* A filtered ancestor would contain the fixed mobile menu inside the header. */
+  .site-header.scrolled,
+  .site-header.inner-header {
+    background: var(--white);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
   .brand img {
     width: 47px;
     height: 47px;
@@ -2646,24 +2672,32 @@ body.page-leaving .page-curtain {
   .nav-menu {
     position: fixed;
     z-index: 101;
-    inset: 0;
+    inset: var(--nav-header-height, 75px) 0 0;
+    height: calc(100vh - var(--nav-header-height, 75px));
+    height: calc(100dvh - var(--nav-header-height, 75px));
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: center;
+    justify-content: flex-start;
+    justify-content: safe center;
     gap: 6px;
-    padding: 100px max(30px, 8vw);
-    background: rgba(255, 255, 255, 0.98);
+    padding: 24px max(30px, 8vw) max(24px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--white);
+    visibility: hidden;
     opacity: 0;
     pointer-events: none;
     transform: translateY(-12px);
-    transition: opacity var(--transition), transform var(--transition);
+    transition: opacity var(--transition), transform var(--transition), visibility 0s linear 240ms;
   }
 
   .nav-menu.open {
+    visibility: visible;
     opacity: 1;
     pointer-events: auto;
     transform: none;
+    transition-delay: 0s;
   }
 
   .nav-menu a,
@@ -2674,6 +2708,9 @@ body.page-leaving .page-curtain {
     font-size: clamp(1.8rem, 8vw, 3rem);
     font-weight: 400;
     letter-spacing: -0.03em;
+    line-height: 1.25;
+    flex-shrink: 0;
+    min-height: 48px;
   }
 
   .hero {

@@ -3,6 +3,8 @@
   const navToggle = document.querySelector('.nav-toggle');
   const navMenu = document.querySelector('.nav-menu');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let navIsOpen = false;
+  let menuScrollPosition = 0;
 
   const scrollProgress = document.createElement('div');
   scrollProgress.className = 'scroll-progress';
@@ -23,13 +25,14 @@
 
   const setHeader = () => {
     if (!header) return;
-    header.classList.toggle('scrolled', window.scrollY > 30);
+    header.classList.toggle('scrolled', (navIsOpen ? menuScrollPosition : window.scrollY) > 30);
   };
 
   setHeader();
   window.addEventListener('scroll', setHeader, { passive: true });
 
   const updateScrollProgress = () => {
+    if (navIsOpen) return;
     const available = document.documentElement.scrollHeight - window.innerHeight;
     const progress = available > 0 ? Math.min(100, (window.scrollY / available) * 100) : 0;
     scrollProgress.style.width = `${progress}%`;
@@ -38,19 +41,65 @@
   window.addEventListener('scroll', updateScrollProgress, { passive: true });
 
   if (navToggle && navMenu) {
-    navToggle.addEventListener('click', () => {
-      const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', String(!isOpen));
-      navMenu.classList.toggle('open', !isOpen);
-      document.body.classList.toggle('nav-open', !isOpen);
-    });
+    const mobileNavigation = window.matchMedia('(max-width: 900px)');
+    const updateNavHeight = () => {
+      if (header) header.style.setProperty('--nav-header-height', `${header.offsetHeight}px`);
+    };
+    updateNavHeight();
+    if (header && 'ResizeObserver' in window) new ResizeObserver(updateNavHeight).observe(header);
+
+    const setNavOpen = (open, restoreFocus = false) => {
+      if (open === navIsOpen) return;
+      if (open) {
+        menuScrollPosition = window.scrollY;
+        document.body.style.setProperty('--nav-scroll-offset', `-${menuScrollPosition}px`);
+        updateNavHeight();
+      }
+      navIsOpen = open;
+      navToggle.setAttribute('aria-expanded', String(open));
+      navToggle.setAttribute('aria-label', open ? 'Tutup menu' : 'Buka menu');
+      navMenu.classList.toggle('open', open);
+      document.body.classList.toggle('nav-open', open);
+
+      if (open) {
+        navMenu.scrollTop = 0;
+        navMenu.querySelector('a')?.focus({ preventScroll: true });
+      } else {
+        document.body.style.removeProperty('--nav-scroll-offset');
+        window.scrollTo({ top: menuScrollPosition, behavior: 'instant' });
+        setHeader();
+        updateScrollProgress();
+        if (restoreFocus) navToggle.focus({ preventScroll: true });
+      }
+    };
+
+    navToggle.addEventListener('click', () => setNavOpen(!navIsOpen, navIsOpen));
 
     navMenu.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        navToggle.setAttribute('aria-expanded', 'false');
-        navMenu.classList.remove('open');
-        document.body.classList.remove('nav-open');
-      });
+      link.addEventListener('click', () => setNavOpen(false));
+    });
+    header?.querySelector('.brand')?.addEventListener('click', () => setNavOpen(false));
+    mobileNavigation.addEventListener('change', () => {
+      if (!mobileNavigation.matches) setNavOpen(false);
+    });
+    window.addEventListener('pageshow', () => setNavOpen(false));
+    document.addEventListener('keydown', (event) => {
+      if (!navIsOpen) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setNavOpen(false, true);
+      } else if (event.key === 'Tab') {
+        const controls = [header?.querySelector('.brand'), navToggle, ...navMenu.querySelectorAll('a')].filter(Boolean);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     });
   }
 
