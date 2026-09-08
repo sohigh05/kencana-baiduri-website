@@ -175,6 +175,7 @@
   let activeMusicPlayer = 0;
   let musicEnabled = safeStorage.get('kbe-background-music', 'on') !== 'off';
   let musicStarted = false;
+  let musicStarting = false;
   let musicCrossfading = false;
   let musicAnimationFrame = 0;
   let storedMusicTime = Number(safeStorage.getSession('kbe-background-music-time', '0')) || 0;
@@ -252,6 +253,11 @@
   };
 
   musicPlayers.forEach((player) => {
+    player.addEventListener('pause', () => {
+      if (player !== musicPlayers[activeMusicPlayer] || musicCrossfading) return;
+      musicStarted = false;
+      updateMusicButton();
+    });
     player.addEventListener('timeupdate', () => {
       if (!Number.isFinite(player.duration) || player !== musicPlayers[activeMusicPlayer]) return;
       const crossfadeSeconds = Math.min(4.2, Math.max(2.2, player.duration * 0.08));
@@ -266,7 +272,8 @@
   });
 
   const startMusic = async () => {
-    if (!musicEnabled || musicStarted) return;
+    if (!musicEnabled || musicStarted || musicStarting) return;
+    musicStarting = true;
     const player = musicPlayers[activeMusicPlayer];
     const applyStoredPosition = () => {
       if (!storedMusicTime || !Number.isFinite(player.duration)) return;
@@ -281,12 +288,18 @@
     try {
       player.volume = 0;
       await player.play();
+      if (!musicEnabled) {
+        player.pause();
+        return;
+      }
       musicStarted = true;
       rampMusicVolume(player, 0, targetMusicVolume, fadeInDuration);
       updateMusicButton();
     } catch {
       musicStarted = false;
       updateMusicButton();
+    } finally {
+      musicStarting = false;
     }
   };
 
@@ -316,8 +329,13 @@
     if (event.target === musicButton || musicButton.contains(event.target)) return;
     if (musicEnabled && !musicStarted) startMusic();
   };
-  document.addEventListener('pointerdown', unlockMusic, { once: true, capture: true });
-  document.addEventListener('keydown', unlockMusic, { once: true, capture: true });
+  // Touch devices may grant audio playback only after touchend or click.
+  // Keep the fallback available if an earlier attempt was blocked.
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach((eventName) => {
+    document.addEventListener(eventName, unlockMusic, { capture: true, passive: true });
+  });
+  window.addEventListener('load', startMusic, { once: true });
+  window.addEventListener('pageshow', startMusic);
   window.addEventListener('pagehide', saveMusicPosition);
   window.setInterval(() => {
     if (musicStarted && !musicCrossfading) saveMusicPosition();
