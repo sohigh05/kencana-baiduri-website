@@ -992,11 +992,35 @@ h3 {
   transition: transform 500ms cubic-bezier(.2, .8, .2, 1);
 }
 
+.document-preview::before {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  padding: 11px 20px;
+  border-block: 1px solid rgba(216, 194, 140, 0.55);
+  color: rgba(255, 255, 255, 0.96);
+  background: rgba(12, 24, 52, 0.72);
+  content: "KENCANA BAIDURI ENTERPRISE • UNTUK RUJUKAN SAHAJA";
+  font-size: clamp(0.56rem, 0.72vw, 0.7rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-28deg);
+  transform-origin: center;
+}
+
 .document-preview::after {
   position: absolute;
+  z-index: 3;
   inset: 0;
   display: grid;
-  place-items: center;
+  place-items: end center;
+  padding: 24px;
   color: var(--white);
   background: rgba(12, 24, 52, 0.62);
   content: "Lihat penuh";
@@ -1613,12 +1637,50 @@ h3 {
   margin: 0;
 }
 
+.lightbox-media {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  max-height: calc(100vh - 165px);
+  display: grid;
+  place-items: center;
+  margin: auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .lightbox-figure img {
   max-width: 100%;
   max-height: calc(100vh - 165px);
   margin: auto;
   border-radius: 8px;
   object-fit: contain;
+}
+
+.lightbox-watermark {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  display: none;
+  padding: clamp(12px, 1.5vw, 20px) 24px;
+  border-block: 1px solid rgba(216, 194, 140, 0.72);
+  color: rgba(255, 255, 255, 0.97);
+  background: rgba(12, 24, 52, 0.7);
+  font-size: clamp(0.65rem, 1.15vw, 0.95rem);
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-28deg);
+  transform-origin: center;
+}
+
+.lightbox-figure.document-lightbox .lightbox-watermark {
+  display: block;
 }
 
 .lightbox-figure img.gallery-lightbox-image {

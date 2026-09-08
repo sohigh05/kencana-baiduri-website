@@ -343,13 +343,17 @@
       <button class="lightbox-close" type="button" aria-label="Tutup paparan">&times;</button>
       <button class="lightbox-nav lightbox-prev" type="button" aria-label="Imej sebelumnya">&#8592;</button>
       <figure class="lightbox-figure">
-        <img src="" alt="">
+        <div class="lightbox-media">
+          <img src="" alt="">
+          <span class="lightbox-watermark" aria-hidden="true">KENCANA BAIDURI ENTERPRISE &bull; UNTUK RUJUKAN SAHAJA</span>
+        </div>
         <figcaption></figcaption>
       </figure>
       <button class="lightbox-nav lightbox-next" type="button" aria-label="Imej seterusnya">&#8594;</button>`;
     document.body.appendChild(lightbox);
 
     const image = lightbox.querySelector('img');
+    const figure = lightbox.querySelector('.lightbox-figure');
     const caption = lightbox.querySelector('figcaption');
     const closeButton = lightbox.querySelector('.lightbox-close');
     const prevButton = lightbox.querySelector('.lightbox-prev');
@@ -363,6 +367,7 @@
       image.src = item.dataset.full || itemImage.src;
       image.alt = itemImage.alt || '';
       image.className = '';
+      figure.classList.toggle('document-lightbox', item.classList.contains('document-preview'));
       if (item.classList.contains('gallery-item')) image.classList.add('gallery-lightbox-image');
       if (item.dataset.crop === 'photo') image.classList.add('gallery-photo-crop');
       caption.textContent = item.dataset.caption || itemImage.alt || '';
