@@ -196,7 +196,8 @@
     if (type && icon) icon.innerHTML = icons[type];
   });
 
-  const musicSource = 'assets/audio/kencana-baiduri-background.mp3';
+  const musicSource = 'assets/audio/bunga-melur.mp3';
+  const musicPositionKey = 'kbe-background-music-time-bunga-melur-v1';
   const musicButton = document.createElement('button');
   musicButton.type = 'button';
   musicButton.className = 'music-control';
@@ -227,7 +228,7 @@
   let musicStarting = false;
   let musicCrossfading = false;
   let musicAnimationFrame = 0;
-  let storedMusicTime = Number(safeStorage.getSession('kbe-background-music-time', '0')) || 0;
+  let storedMusicTime = Number(safeStorage.getSession(musicPositionKey, '0')) || 0;
 
   musicPlayers.forEach((player) => {
     player.preload = 'auto';
@@ -259,7 +260,7 @@
   const saveMusicPosition = () => {
     const player = musicPlayers[activeMusicPlayer];
     if (Number.isFinite(player.currentTime)) {
-      safeStorage.setSession('kbe-background-music-time', String(player.currentTime));
+      safeStorage.setSession(musicPositionKey, String(player.currentTime));
     }
   };
 
