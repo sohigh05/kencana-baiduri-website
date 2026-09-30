@@ -1259,6 +1259,51 @@ h3 {
   color: rgba(255, 255, 255, 0.58);
 }
 
+.founder-credentials {
+  width: 100%;
+  display: grid;
+  gap: 9px;
+  margin: 22px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(216, 194, 140, 0.24);
+  list-style: none;
+  text-align: left;
+}
+
+.founder-credentials li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 12px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.founder-credentials span {
+  color: var(--gold-light);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.founder-credentials strong {
+  color: var(--white);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.founder-credentials small {
+  grid-column: 1 / -1;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  text-align: right;
+}
+
 .company-detail {
   display: flex;
   flex-direction: column;
@@ -2861,6 +2906,19 @@ body.page-leaving .page-curtain {
 
   .company-profile-core {
     padding: 24px 16px;
+  }
+
+  .founder-credentials li {
+    grid-template-columns: 1fr;
+  }
+
+  .founder-credentials strong,
+  .founder-credentials small {
+    text-align: left;
+  }
+
+  .founder-credentials small {
+    grid-column: auto;
   }
 
   .founder-photo-shell {
