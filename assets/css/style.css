@@ -852,6 +852,34 @@ h3 {
   font-size: 0.87rem;
 }
 
+.project-row .project-reference {
+  margin-top: 7px;
+  color: #78849a;
+  font-size: 0.74rem;
+  letter-spacing: 0.015em;
+  overflow-wrap: anywhere;
+}
+
+.project-row .project-tag {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 8px;
+  padding: 5px 9px;
+  border: 1px solid rgba(179, 145, 70, 0.3);
+  border-radius: 999px;
+  background: rgba(216, 194, 140, 0.12);
+  color: #927126;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.project-row-partner {
+  background: linear-gradient(105deg, #fff 0%, #fff 72%, rgba(216, 194, 140, 0.09) 100%);
+}
+
 .project-value {
   color: var(--navy) !important;
   font-weight: 800;
@@ -901,6 +929,11 @@ h3 {
 
 .metric:last-child strong {
   font-size: clamp(1.55rem, 2.5vw, 2.65rem);
+}
+
+.metric:nth-child(2) strong {
+  font-size: clamp(1.35rem, 2.15vw, 2.25rem);
+  white-space: normal;
 }
 
 @keyframes metric-flow {
@@ -1124,16 +1157,16 @@ h3 {
 /* Interactive company profile */
 .company-profile-stage {
   position: relative;
-  min-height: 760px;
+  min-height: 880px;
   display: grid;
-  grid-template-columns: minmax(230px, 1fr) minmax(290px, 360px) minmax(230px, 1fr);
+  grid-template-columns: minmax(230px, 1fr) minmax(380px, 430px) minmax(230px, 1fr);
   grid-template-rows: repeat(4, minmax(130px, auto));
   grid-template-areas:
     "name core register"
     "type core year"
     "address core email"
     "address core phone";
-  gap: 24px 64px;
+  gap: 24px 44px;
   align-items: stretch;
   padding: 54px;
   border: 1px solid rgba(216, 194, 140, 0.24);
@@ -1190,7 +1223,7 @@ h3 {
   align-self: center;
   display: grid;
   justify-items: center;
-  padding: 30px 24px;
+  padding: 30px 28px;
   border: 1px solid rgba(216, 194, 140, 0.42);
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.045));
@@ -1272,10 +1305,11 @@ h3 {
 
 .founder-credentials li {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 3px 12px;
-  align-items: baseline;
-  padding: 10px 12px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 5px 16px;
+  align-items: center;
+  min-width: 0;
+  padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.045);
@@ -1290,10 +1324,12 @@ h3 {
 }
 
 .founder-credentials strong {
+  min-width: 0;
   color: var(--white);
   font-size: 0.78rem;
   line-height: 1.45;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .founder-credentials small {
@@ -1302,6 +1338,17 @@ h3 {
   font-size: 0.72rem;
   line-height: 1.4;
   text-align: right;
+}
+
+.founder-credentials li:first-child {
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.founder-credentials li:first-child strong,
+.founder-credentials li:first-child small {
+  grid-column: auto;
+  text-align: left;
 }
 
 .company-detail {
@@ -2580,7 +2627,7 @@ body.page-leaving .page-curtain {
 
   .company-profile-core {
     width: 100%;
-    max-width: 380px;
+    max-width: 430px;
     justify-self: center;
     margin-bottom: 16px;
   }
